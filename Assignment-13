@@ -1,0 +1,95 @@
+
+import threading
+import time
+
+results = []
+lock = threading.Lock()
+
+
+# Task 1: Compute squares
+def compute_squares():
+    start = time.time()
+
+    numbers = [1, 2, 3, 4, 5]
+    squares = [n ** 2 for n in numbers]
+
+    time.sleep(1.5)
+
+    message = f"Squares: {squares}"
+
+    with lock:
+        results.append(message)
+
+    print("Task 1 completed")
+
+
+# Task 2: Write to a file
+def write_file(path):
+    time.sleep(1.0)
+
+    with open(path, "w") as file:
+        file.write("This file was created using multithreading.")
+
+    message = "File written successfully"
+
+    with lock:
+        results.append(message)
+
+    print("Task 2 completed")
+
+
+# Task 3: Simulate a download
+def fake_download(name):
+    time.sleep(1.0)
+
+    message = f"Download completed: {name}"
+
+    with lock:
+        results.append(message)
+
+    print("Task 3 completed")
+
+
+# Sequential execution
+start = time.time()
+
+compute_squares()
+write_file("output.txt")
+fake_download("data.zip")
+
+sequential_time = time.time() - start
+
+# Clear results before threaded execution
+results.clear()
+
+
+# Multithreaded execution
+start = time.time()
+
+threads = [
+    threading.Thread(target=compute_squares),
+    threading.Thread(target=write_file, args=("output.txt",)),
+    threading.Thread(target=fake_download, kwargs={"name": "data.zip"})
+]
+
+# Start all threads
+for t in threads:
+    t.start()
+
+# Wait for all threads
+for t in threads:
+    t.join()
+
+threaded_time = time.time() - start
+
+
+# Display results
+print("\nFinal Results:")
+for result in results:
+    print(result)
+
+print("\nExecution Time:")
+print(f"Sequential: {sequential_time:.2f} seconds")
+print(f"Threaded: {threaded_time:.2f} seconds")
+
+print(f"Speedup: {sequential_time / threaded_time:.2f}x")

@@ -1,0 +1,80 @@
+
+import logging
+import logging.config
+from logging.handlers import RotatingFileHandler
+
+# Custom filter to block messages containing "password"
+class MyFilter(logging.Filter):
+    def filter(self, record):
+        return "password" not in record.getMessage().lower()
+
+
+# Create logger
+logger = logging.getLogger("shop")
+logger.setLevel(logging.DEBUG)
+
+# Formatter
+formatter = logging.Formatter(
+    "%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s"
+)
+
+# Console Handler (INFO and above)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+
+# File Handler (WARNING and above)
+file_handler = RotatingFileHandler(
+    "app.log", maxBytes=2000, backupCount=3
+)
+file_handler.setLevel(logging.WARNING)
+file_handler.setFormatter(formatter)
+
+# Add filter
+console_handler.addFilter(MyFilter())
+file_handler.addFilter(MyFilter())
+
+# Add handlers to logger
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+
+
+# Logging different levels
+logger.debug("Debug message")
+logger.info("Application started")
+logger.warning("Low stock warning")
+logger.error("Payment failed")
+logger.critical("Critical system failure")
+
+
+# Lazy formatting
+logger.info("Order %d, Rs.%.2f", 42, 1999.5)
+
+
+# Extra information
+user_logger = logging.LoggerAdapter(logger, {"user": "rahul"})
+user_logger.info("User logged in")
+
+
+# Exception logging
+try:
+    result = 10 / 0
+except ZeroDivisionError:
+    logger.exception("Division failed")
+
+
+# Filter demonstration
+logger.info("Logged in successfully")
+logger.warning("Password is 1234")
+logger.info("Opened dashboard")
+
+
+# Logger hierarchy
+cart_logger = logging.getLogger("shop.cart")
+payment_logger = logging.getLogger("shop.pay")
+
+cart_logger.info("Cart opened")
+payment_logger.info("Payment processed")
+
+
+print("Logging demonstration completed.")

@@ -1,0 +1,148 @@
+
+import gc
+import sys
+import time
+
+# Experiment 1: Reference Counting
+print("1. REFERENCE COUNTING")
+
+a = []
+b = a
+
+print("Reference count:", sys.getrefcount(a))
+
+del b
+print("After deleting b:", sys.getrefcount(a))
+
+
+# Experiment 2: Cyclic Garbage Collection
+print("\n2. CYCLIC GARBAGE COLLECTION")
+
+class Node:
+    def __init__(self, name):
+        self.name = name
+        self.other = None
+
+    def __del__(self):
+        print(self.name, "destroyed")
+
+
+x = Node("X")
+y = Node("Y")
+
+x.other = y
+y.other = x
+
+del x
+del y
+
+print("Calling garbage collector...")
+collected = gc.collect()
+print("Objects collected:", collected)
+
+
+# Experiment 3: Objects tracked by GC
+print("\n3. OBJECT TRACKING")
+
+a = 5
+b = [1, 2, 3]
+c = {}
+
+print("Integer:", gc.is_tracked(a))
+print("List:", gc.is_tracked(b))
+print("Empty dictionary:", gc.is_tracked(c))
+
+
+# Experiment 4: Generations and thresholds
+print("\n4. GENERATIONS")
+
+print("Thresholds:", gc.get_threshold())
+print("Counts:", gc.get_count())
+print("Statistics:", gc.get_stats())
+
+
+# Experiment 5: Automatic garbage collection
+print("\n5. AUTOMATIC COLLECTION")
+
+gc.set_threshold(50, 10, 10)
+
+gc.enable()
+
+for i in range(5000):
+    obj = [i] * 10
+
+print("Collection counts:", gc.get_count())
+print("Collection statistics:", gc.get_stats())
+
+gc.collect()
+
+
+# Experiment 6: Manual garbage collection
+print("\n6. MANUAL COLLECTION")
+
+print("Before:", gc.get_count())
+
+collected = gc.collect(2)
+
+print("Objects collected:", collected)
+print("After:", gc.get_count())
+
+
+# Experiment 7: Disable and enable GC
+print("\n7. DISABLE AND ENABLE GC")
+
+gc.disable()
+print("GC enabled:", gc.isenabled())
+
+gc.enable()
+print("GC enabled:", gc.isenabled())
+
+
+# Experiment 8: Garbage collection callbacks
+print("\n8. GC CALLBACKS")
+
+def gc_callback(phase, info):
+    print("Phase:", phase, "Info:", info)
+
+gc.callbacks.append(gc_callback)
+
+gc.collect()
+
+gc.callbacks.remove(gc_callback)
+
+
+# Experiment 9: Freeze and unfreeze
+print("\n9. FREEZE AND UNFREEZE")
+
+gc.freeze()
+print("Objects frozen.")
+
+gc.unfreeze()
+print("Objects unfrozen.")
+
+
+# Experiment 10: Performance comparison
+print("\n10. PERFORMANCE COMPARISON")
+
+def test():
+    data = []
+    for i in range(100000):
+        data.append([i, i + 1])
+    return data
+
+gc.enable()
+
+start = time.time()
+test()
+time_on = time.time() - start
+
+gc.disable()
+
+start = time.time()
+test()
+time_off = time.time() - start
+
+gc.enable()
+
+print("GC ON:", round(time_on * 1000, 2), "ms")
+print("GC OFF:", round(time_off * 1000, 2), "ms")
